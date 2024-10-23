@@ -160,10 +160,10 @@ sensors/mpu9250.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products
 sensors/mpu9250.obj: /home/linuxlite/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdbool.h
 sensors/mpu9250.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Clock.h
 sensors/mpu9250.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/package/Clock_TimerProxy.h
-sensors/mpu9250.obj: /home/linuxlite/Desktop/harkkatyo/Board.h
+sensors/mpu9250.obj: /home/linuxlite/workspace_v10/harkkatyo/Board.h
 sensors/mpu9250.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/Power.h
 sensors/mpu9250.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/utils/List.h
-sensors/mpu9250.obj: /home/linuxlite/Desktop/harkkatyo/CC2650STK.h
+sensors/mpu9250.obj: /home/linuxlite/workspace_v10/harkkatyo/CC2650STK.h
 sensors/mpu9250.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/PIN.h
 sensors/mpu9250.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/cc26xxware_2_24_03_17272/driverlib/ioc.h
 sensors/mpu9250.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/cc26xxware_2_24_03_17272/inc/hw_types.h
@@ -501,13 +501,13 @@ sensors/mpu9250.obj: ../sensors/mpu9250.h
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/package/Clock_TimerProxy.h:
 
-/home/linuxlite/Desktop/harkkatyo/Board.h:
+/home/linuxlite/workspace_v10/harkkatyo/Board.h:
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/Power.h:
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/utils/List.h:
 
-/home/linuxlite/Desktop/harkkatyo/CC2650STK.h:
+/home/linuxlite/workspace_v10/harkkatyo/CC2650STK.h:
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/PIN.h:
 

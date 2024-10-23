@@ -88,11 +88,11 @@ sensors/bmp280.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/run
 sensors/bmp280.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/package/System_SupportProxy.h
 sensors/bmp280.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/package/System_Module_GateProxy.h
 sensors/bmp280.obj: /home/linuxlite/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h
-sensors/bmp280.obj: /home/linuxlite/Desktop/harkkatyo/Board.h
+sensors/bmp280.obj: /home/linuxlite/workspace_v10/harkkatyo/Board.h
 sensors/bmp280.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/Power.h
 sensors/bmp280.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/utils/List.h
 sensors/bmp280.obj: /home/linuxlite/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdbool.h
-sensors/bmp280.obj: /home/linuxlite/Desktop/harkkatyo/CC2650STK.h
+sensors/bmp280.obj: /home/linuxlite/workspace_v10/harkkatyo/CC2650STK.h
 sensors/bmp280.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/PIN.h
 sensors/bmp280.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/cc26xxware_2_24_03_17272/driverlib/ioc.h
 sensors/bmp280.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/cc26xxware_2_24_03_17272/inc/hw_types.h
@@ -287,7 +287,7 @@ sensors/bmp280.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/
 
 /home/linuxlite/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h:
 
-/home/linuxlite/Desktop/harkkatyo/Board.h:
+/home/linuxlite/workspace_v10/harkkatyo/Board.h:
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/Power.h:
 
@@ -295,7 +295,7 @@ sensors/bmp280.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/
 
 /home/linuxlite/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdbool.h:
 
-/home/linuxlite/Desktop/harkkatyo/CC2650STK.h:
+/home/linuxlite/workspace_v10/harkkatyo/CC2650STK.h:
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/PIN.h:
 
