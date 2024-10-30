@@ -10,6 +10,7 @@
 #include <ti/sysbios/knl/Clock.h>
 #include <ti/sysbios/knl/Task.h>
 #include <ti/drivers/PIN.h>
+#include <ti/drivers/i2c/I2CCC26XX.h>
 #include <ti/drivers/pin/PINCC26XX.h>
 #include <ti/drivers/I2C.h>
 #include <ti/drivers/Power.h>
@@ -24,67 +25,83 @@
 #define STACKSIZE 2048
 Char sensorTaskStack[STACKSIZE];
 Char uartTaskStack[STACKSIZE];
+Char collectDataStack[STACKSIZE];
 
-// JTKJ: Teht�v� 3. Tilakoneen esittely
-// JTKJ: Exercise 3. Definition of the state machine
+//Tilakone
+
 enum state { WAITING=1, DATA_READY };
 enum state programState = WAITING;
 
-// JTKJ: Teht�v� 3. Valoisuuden globaali muuttuja
-// JTKJ: Exercise 3. Global variable for ambient light
-double ambientLight = -1000.0;
 
-// JTKJ: Teht�v� 1. Lis�� painonappien RTOS-muuttujat ja alustus
+// Global variables
+double ambientLight = -1000.0;
+float mpuValues[30][6];
+char movementData[60];
+
+
 static PIN_Handle buttonHandle;
 static PIN_State buttonState;
 static PIN_Handle ledHandle;
 static PIN_State ledState;
+static PIN_Handle MpuPin;
+static PIN_State MpuPinState;
+
+static PIN_Config MpuPinConfig[] = {
+    Board_MPU_POWER  | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL | PIN_DRVSTR_MAX,
+    PIN_TERMINATE
+};
 
 PIN_Config buttonConfig[] = {
    Board_BUTTON0  | PIN_INPUT_EN | PIN_PULLUP | PIN_IRQ_NEGEDGE,
-   PIN_TERMINATE // Asetustaulukko lopetetaan aina tällä vakiolla
+   PIN_TERMINATE
 };
 
-// Vakio Board_LED0 vastaa toista lediä
 PIN_Config ledConfig[] = {
    Board_LED0 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
-   PIN_TERMINATE // Asetustaulukko lopetetaan aina tällä vakiolla
+   PIN_TERMINATE
 };
-// JTKJ: Exercise 1. Add pins RTOS-variables and configuration here
+
+static const I2CCC26XX_I2CPinCfg i2cMPUCfg = {
+    .pinSDA = Board_I2C0_SDA1,
+    .pinSCL = Board_I2C0_SCL1
+};
 
 void buttonFxn(PIN_Handle handle, PIN_Id pinId) {
 
-    // JTKJ: Teht�v� 1. Vilkuta jompaa kumpaa ledi�
+    // Vilkuta jompaa kumpaa ledia
     uint_t pinValue = PIN_getOutputValue( Board_LED0 );
     pinValue = !pinValue;
     PIN_setOutputValue( ledHandle, Board_LED0, pinValue );
-    // JTKJ: Exercise 1. Blink either led of the device
+
 }
 
-/* Task Functions */
+/* Task Functions *//*
 Void uartTaskFxn(UArg arg0, UArg arg1) {
 
-    // JTKJ: Teht�v� 4. Lis�� UARTin alustus: 9600,8n1
-    // JTKJ: Exercise 4. Setup here UART connection as 9600,8n1
+    // UARTin alustus: 9600,8n1
+
     UART_Handle uart;
     UART_Params uartParams;
+
 
     UART_Params_init(&uartParams);
     uartParams.writeDataMode = UART_DATA_TEXT;
     uartParams.readDataMode = UART_DATA_TEXT;
     uartParams.readEcho = UART_ECHO_OFF;
     uartParams.readMode=UART_MODE_BLOCKING;
-    uartParams.baudRate = 9600; // nopeus 9600baud
-    uartParams.dataLength = UART_LEN_8; // 8
-    uartParams.parityType = UART_PAR_NONE; // n
-    uartParams.stopBits = UART_STOP_ONE; // 1
+    uartParams.baudRate = 9600;
+    uartParams.dataLength = UART_LEN_8;
+    uartParams.parityType = UART_PAR_NONE;
+    uartParams.stopBits = UART_STOP_ONE;
+
+    uart = UART_open(Board_UART0, &uartParams);
+       if (uart == NULL) {
+           System_abort("Error opening the UART in uartTask");
+       }
 
     while (1) {
 
-        // JTKJ: Teht�v� 3. Kun tila on oikea, tulosta sensoridata merkkijonossa debug-ikkunaan
-        //       Muista tilamuutos
-        // JTKJ: Exercise 3. Print out sensor data as string to debug window if the state is correct
-        //       Remember to modify state
+        //Data=ready, tulostaa debug ikkunaan
         char dbg_msg[8];
         if (programState == DATA_READY) {
 
@@ -93,25 +110,24 @@ Void uartTaskFxn(UArg arg0, UArg arg1) {
             System_flush();
             UART_write(uart, dbg_msg, strlen(dbg_msg));
             }
-        // JTKJ: Teht�v� 4. L�het� sama merkkijono UARTilla
-        // JTKJ: Exercise 4. Send the same sensor data string with UART
 
 
-        // Just for sanity check for exercise, you can comment this out
-        System_printf("uartTask\n");
+
+        // sanity check
+        //System_printf("uartTask\n");
         //System_flush();
 
-        // Once per second, you can modify this
+        //once per second
         Task_sleep(100000 / Clock_tickPeriod);
     }
-}
-
+}*/
+/*
 Void sensorTaskFxn(UArg arg0, UArg arg1) {
 
     I2C_Handle      i2c;
     I2C_Params      i2cParams;
 
-    // JTKJ: Teht�v� 2. Avaa i2c-v�yl� taskin k�ytt��n
+    // avaa i2c-vayla taskin k�ytt��n
     I2C_Params_init(&i2cParams);
     i2c = I2C_open(Board_I2C_TMP, &i2cParams);
     if (i2c == NULL) {
@@ -119,40 +135,115 @@ Void sensorTaskFxn(UArg arg0, UArg arg1) {
         System_flush();
         return;
     }
-    // JTKJ: Exercise 2. Open the i2c bus
 
-    // JTKJ: Teht�v� 2. Alusta sensorin OPT3001 setup-funktiolla
-    //       Laita enne funktiokutsua eteen 100ms viive (Task_sleep)
+
       Task_sleep(100000 / Clock_tickPeriod);
       opt3001_setup(&i2c);
-    // JTKJ: Exercise 2. Setup the OPT3001 sensor for use
-    //       Before calling the setup function, insertt 100ms delay with Task_sleep
+
 
     while (1) {
 
-        // JTKJ: Teht�v� 2. Lue sensorilta dataa ja tulosta se Debug-ikkunaan merkkijonona
-        // JTKJ: Exercise 2. Read sensor data and print it to the Debug window as string
+        // Lue sensorilta dataa ja tulosta se Debug-ikkunaan merkkijonona
+
 
         System_flush();
         char dbg_msg[16];
         double valoisuus = opt3001_get_data(&i2c);
-        sprintf(dbg_msg, "%s %f %s\n", "valoisuus: ", valoisuus, "luxia (sensortask)");
+        sprintf(dbg_msg, "%f %s\n", valoisuus, "(sensortask)");
         System_printf("%s\n", dbg_msg);
         System_flush();
 
-        // JTKJ: Teht�v� 3. Tallenna mittausarvo globaaliin muuttujaan
-        //       Muista tilamuutos
+        // Tallenna mittausarvo globaaliin muuttujaan
         ambientLight = valoisuus;
         programState = DATA_READY;
-        // JTKJ: Exercise 3. Save the sensor value into the global variable
-        //       Remember to modify state
-        // Just for sanity check for exercise, you can comment this out
+
+        // sanity check
         //System_printf("sensorTask\n");
         //System_flush();
 
-        // Once per second, you can modify this
+        // Once per second
         Task_sleep(1000000 / Clock_tickPeriod);
     }
+}
+*/
+Void collectDataFxn(UArg arg0, UArg arg1) {
+
+    while (1) {
+
+        //git-esimerkistä koodi
+        float ax, ay, az, gx, gy, gz;
+        I2C_Handle i2cMPU;
+        I2C_Params i2cMPUParams;
+
+        //sanity check
+        System_printf("datacollect\n");
+
+
+        I2C_Params_init(&i2cMPUParams);
+        i2cMPUParams.bitRate = I2C_400kHz;
+
+        i2cMPUParams.custom = (uintptr_t)&i2cMPUCfg;
+
+        PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_ON);
+
+        Task_sleep(100000 / Clock_tickPeriod);
+        System_printf("MPU9250: Power ON\n");
+        System_flush();
+
+        i2cMPU = I2C_open(Board_I2C, &i2cMPUParams);
+        if (i2cMPU == NULL) {
+            System_abort("Error Initializing I2CMPU\n");
+        }
+
+        System_printf("MPU9250: Setup and calibration...\n");
+        System_flush();
+
+        mpu9250_setup(&i2cMPU);
+
+        System_printf("MPU9250: Setup and calibration OK\n");
+        System_flush();
+
+        int i, j;
+
+        float aika;
+
+        for (i = 0; i <= 30; i++) {
+
+            mpu9250_get_data(&i2cMPU, &ax, &ay, &az, &gx, &gy, &gz);
+            aika = (double)Clock_getTicks() / 500000.0;
+
+            mpuValues[i][0] = ax;
+            mpuValues[i][1] = ay;
+            mpuValues[i][2] = az;
+            mpuValues[i][3] = gx;
+            mpuValues[i][4] = gy;
+            mpuValues[i][5] = gz;
+
+        }
+
+        for (j = 0; j <= 30; j++) {
+
+            sprintf(movementData, "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
+                    mpuValues[j][0], mpuValues[j][1], mpuValues[j][2], mpuValues[j][3], mpuValues[j][4], mpuValues[j][5]);
+            System_printf(movementData);
+            System_flush();
+
+        }
+        System_printf("\n");
+        System_flush();
+
+        // MPU close i2c
+        I2C_close(i2cMPU);
+        //MPU power off
+        PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_OFF);
+
+        System_printf("MPU9250: Power off\n");
+        System_flush();
+
+        Task_sleep(1000000 / Clock_tickPeriod);
+
+    }
+
 }
 
 Int main(void) {
@@ -162,25 +253,14 @@ Int main(void) {
     Task_Params sensorTaskParams;
     Task_Handle uartTaskHandle;
     Task_Params uartTaskParams;
+    Task_Handle collectDataTaskHandle;
+    Task_Params collectDataTaskParams;
 
     // Initialize board
     Board_initGeneral();
 
-
-    // JTKJ: Teht�v� 2. Ota i2c-v�yl� k�ytt��n ohjelmassa
     Board_initI2C();
-    // JTKJ: Exercise 2. Initialize i2c bus
-    // JTKJ: Teht�v� 4. Ota UART k�ytt��n ohjelmassa
 
-    // JTKJ: Exercise 4. Initialize UART
-    UART_Handle uart;
-    UART_Params uartParams;
-
-    uart = UART_open(Board_UART0, &uartParams);
-      if (uart == NULL) {
-         System_abort("Error opening the UART");
-      }
-    // JTKJ: Teht�v� 1. Ota painonappi ja ledi ohjelman k�ytt��n
     ledHandle = PIN_open( &ledState, ledConfig );
     if(!ledHandle) {
        System_abort("Error initializing LED pin\n");
@@ -196,11 +276,16 @@ Int main(void) {
     if (PIN_registerIntCb(buttonHandle, &buttonFxn) != 0) {
        System_abort("Error registering button callback function");
     }
-    //       Muista rekister�id� keskeytyksen k�sittelij� painonapille
-    // JTKJ: Exercise 1. Open the button and led pins
-    //       Remember to register the above interrupt handler for button
+
+    MpuPin = PIN_open(&MpuPinState, MpuPinConfig);
+        if (MpuPin == NULL) {
+            System_abort("Pin open failed!");
+        }
+
+
 
     /* Task */
+/*
     Task_Params_init(&sensorTaskParams);
     sensorTaskParams.stackSize = STACKSIZE;
     sensorTaskParams.stack = &sensorTaskStack;
@@ -216,6 +301,16 @@ Int main(void) {
     uartTaskParams.priority=2;
     uartTaskHandle = Task_create(uartTaskFxn, &uartTaskParams, NULL);
     if (uartTaskHandle == NULL) {
+        System_abort("Task create failed!");
+    }*/
+
+    // Initialize and create collectDataTask for data gathering
+    Task_Params_init(&collectDataTaskParams);
+    collectDataTaskParams.stackSize = STACKSIZE;
+    collectDataTaskParams.stack = &collectDataStack;
+    collectDataTaskParams.priority = 3;
+    collectDataTaskHandle = Task_create(collectDataFxn, &collectDataTaskParams, NULL);
+    if (collectDataTaskHandle == NULL) {
         System_abort("Task create failed!");
     }
 

@@ -170,6 +170,8 @@ project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bi
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/package/Task_SupportProxy.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/PIN.h
 project_main.obj: /home/linuxlite/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdbool.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/i2c/I2CCC26XX.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/I2C.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/pin/PINCC26XX.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/cc26xxware_2_24_03_17272/driverlib/ioc.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/cc26xxware_2_24_03_17272/inc/hw_types.h
@@ -201,9 +203,32 @@ project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runti
 project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Error.h
 project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/family/arm/m3/Hwi__epilogue.h
-project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/I2C.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/Power.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/utils/List.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/family/arm/m3/Hwi.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Swi.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Semaphore.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Diags.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Log.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Assert.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Queue.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Task.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Clock.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Event.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Event__prologue.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Assert.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Diags.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Log.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Queue.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Clock.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Task.h
+project_main.obj: /home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h
+project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Event__epilogue.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/power/PowerCC26XX.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/family/arm/m3/Hwi.h
 project_main.obj: /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Clock.h
@@ -552,6 +577,10 @@ project_main.obj: ../sensors/opt3001.h
 
 /home/linuxlite/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdbool.h:
 
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/i2c/I2CCC26XX.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/I2C.h:
+
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/pin/PINCC26XX.h:
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/cc26xxware_2_24_03_17272/driverlib/ioc.h:
@@ -614,11 +643,57 @@ project_main.obj: ../sensors/opt3001.h
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/family/arm/m3/Hwi__epilogue.h:
 
-/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/I2C.h:
-
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/Power.h:
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/utils/List.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/family/arm/m3/Hwi.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Swi.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Semaphore.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Diags.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Log.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Assert.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Queue.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Task.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Clock.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Event.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Event__prologue.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Assert.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Diags.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Log.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Queue.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Clock.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Task.h:
+
+/home/linuxlite/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IModule.h:
+
+/home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/bios_6_46_01_38/packages/ti/sysbios/knl/Event__epilogue.h:
 
 /home/linuxlite/ti/tirtos_cc13xx_cc26xx_2_21_01_08/products/tidrivers_cc13xx_cc26xx_2_21_01_01/packages/ti/drivers/power/PowerCC26XX.h:
 

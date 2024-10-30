@@ -69,18 +69,16 @@ uint16_t opt3001_get_status(I2C_Handle *i2c) {
 double opt3001_get_data(I2C_Handle *i2c) {
 
     // JTKJ: Tehtävä 2. Muokkaa funktiota niin että se palauttaa mittausarvon lukseina
-    // JTKJ: Exercise 2. Complete this function to return the measured value as lux
 
     double lux = -1.0; // return value of the function
-    // JTKJ: Find out the correct buffer sizes (n) with this sensor?
+    //buffers
     uint8_t txBuffer[1];
     uint8_t rxBuffer[2];
     uint16_t r0r11;
     uint16_t e0e3;
 
 
-    // JTKJ: Fill in the i2cMessage data structure with correct values
-    //       as shown in the lecture material
+
     I2C_Transaction i2cMessage;
     i2cMessage.slaveAddress = Board_OPT3001_ADDR;
     txBuffer[0] = OPT3001_REG_RESULT;   // Rekisterin osoite lähetyspuskuriin
