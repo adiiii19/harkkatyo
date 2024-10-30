@@ -21,11 +21,12 @@
 #include "Board.h"
 #include "sensors/opt3001.h"
 
+
 /* Task */
 #define STACKSIZE 2048
 Char sensorTaskStack[STACKSIZE];
 Char uartTaskStack[STACKSIZE];
-Char collectDataStack[STACKSIZE];
+
 
 //Tilakone
 
@@ -121,140 +122,105 @@ Void uartTaskFxn(UArg arg0, UArg arg1) {
         Task_sleep(100000 / Clock_tickPeriod);
     }
 }*/
-/*
+
 Void sensorTaskFxn(UArg arg0, UArg arg1) {
 
-    I2C_Handle      i2c;
-    I2C_Params      i2cParams;
-
-    // avaa i2c-vayla taskin k�ytt��n
-    I2C_Params_init(&i2cParams);
-    i2c = I2C_open(Board_I2C_TMP, &i2cParams);
-    if (i2c == NULL) {
-        System_printf("Error: I2C_open() failed!\n");
-        System_flush();
-        return;
-    }
-
-
-      Task_sleep(100000 / Clock_tickPeriod);
-      opt3001_setup(&i2c);
-
-
     while (1) {
+            float ax, ay, az, gx, gy, gz;
+            I2C_Handle i2cMPU;
+            I2C_Params i2cMPUParams;
+            //I2C_Handle      i2c;
+            //I2C_Params      i2cParams;
 
-        // Lue sensorilta dataa ja tulosta se Debug-ikkunaan merkkijonona
-
-
-        System_flush();
-        char dbg_msg[16];
-        double valoisuus = opt3001_get_data(&i2c);
-        sprintf(dbg_msg, "%f %s\n", valoisuus, "(sensortask)");
-        System_printf("%s\n", dbg_msg);
-        System_flush();
-
-        // Tallenna mittausarvo globaaliin muuttujaan
-        ambientLight = valoisuus;
-        programState = DATA_READY;
-
-        // sanity check
-        //System_printf("sensorTask\n");
-        //System_flush();
-
-        // Once per second
-        Task_sleep(1000000 / Clock_tickPeriod);
-    }
-}
-*/
-Void collectDataFxn(UArg arg0, UArg arg1) {
-
-    while (1) {
-
-        //git-esimerkistä koodi
-        float ax, ay, az, gx, gy, gz;
-        I2C_Handle i2cMPU;
-        I2C_Params i2cMPUParams;
-
-        //sanity check
-        System_printf("datacollect\n");
-
-
-        I2C_Params_init(&i2cMPUParams);
-        i2cMPUParams.bitRate = I2C_400kHz;
-
-        i2cMPUParams.custom = (uintptr_t)&i2cMPUCfg;
-
-        PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_ON);
-
-        Task_sleep(100000 / Clock_tickPeriod);
-        System_printf("MPU9250: Power ON\n");
-        System_flush();
-
-        i2cMPU = I2C_open(Board_I2C, &i2cMPUParams);
-        if (i2cMPU == NULL) {
-            System_abort("Error Initializing I2CMPU\n");
-        }
-
-        System_printf("MPU9250: Setup and calibration...\n");
-        System_flush();
-
-        mpu9250_setup(&i2cMPU);
-
-        System_printf("MPU9250: Setup and calibration OK\n");
-        System_flush();
-
-        int i, j;
-
-        float aika;
-
-        for (i = 0; i <= 30; i++) {
-
-            mpu9250_get_data(&i2cMPU, &ax, &ay, &az, &gx, &gy, &gz);
-            aika = (double)Clock_getTicks() / 500000.0;
-
-            mpuValues[i][0] = ax;
-            mpuValues[i][1] = ay;
-            mpuValues[i][2] = az;
-            mpuValues[i][3] = gx;
-            mpuValues[i][4] = gy;
-            mpuValues[i][5] = gz;
-
-        }
-
-        for (j = 0; j <= 30; j++) {
-
-            sprintf(movementData, "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
-                    mpuValues[j][0], mpuValues[j][1], mpuValues[j][2], mpuValues[j][3], mpuValues[j][4], mpuValues[j][5]);
-            System_printf(movementData);
+            //sanity check
+            System_printf("datacollect\n");
             System_flush();
 
+            I2C_Params_init(&i2cMPUParams);
+            i2cMPUParams.bitRate = I2C_400kHz;
+
+            i2cMPUParams.custom = (uintptr_t)&i2cMPUCfg;
+
+            PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_ON);
+
+            Task_sleep(100000 / Clock_tickPeriod);
+            System_printf("MPU9250: Power ON\n");
+            System_flush();
+
+            i2cMPU = I2C_open(Board_I2C, &i2cMPUParams);
+            if (i2cMPU == NULL) {
+                System_abort("Error Initializing I2CMPU\n");
+            }
+
+            System_printf("MPU9250: Setup and calibration...\n");
+            System_flush();
+
+            mpu9250_setup(&i2cMPU);
+
+            System_printf("MPU9250: Setup and calibration OK\n");
+            System_flush();
+
+            // Start time before data gathering
+            int32_t startTime = Clock_getTicks(); // Get the current tick count
+
+            int i, j;
+
+
+
+            System_printf("Data gathering start\n");
+            System_flush();
+
+            for (i = 0; i <= 30; i++) {
+
+                mpu9250_get_data(&i2cMPU, &ax, &ay, &az, &gx, &gy, &gz);
+
+
+                mpuValues[i][0] = ax;
+                mpuValues[i][1] = ay;
+                mpuValues[i][2] = az;
+                mpuValues[i][3] = gx;
+                mpuValues[i][4] = gy;
+                mpuValues[i][5] = gz;
+
+                Task_sleep(100000 / Clock_tickPeriod);
+
+            }
+            System_printf("Data gathering end\n");
+            System_flush();
+
+            for (j = 0; j <= 30; j++) {
+
+                sprintf(movementData, "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
+                        mpuValues[j][0], mpuValues[j][1], mpuValues[j][2], mpuValues[j][3], mpuValues[j][4], mpuValues[j][5]);
+                System_printf(movementData);
+                System_flush();
+
+            }
+            System_printf("\n");
+            System_flush();
+
+            // MPU close i2c
+            I2C_close(i2cMPU);
+            //MPU power off
+            PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_OFF);
+
+            System_printf("MPU9250: Power off\n");
+            System_flush();
+
+            Task_sleep(1000000 / Clock_tickPeriod);
+
         }
-        System_printf("\n");
-        System_flush();
-
-        // MPU close i2c
-        I2C_close(i2cMPU);
-        //MPU power off
-        PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_OFF);
-
-        System_printf("MPU9250: Power off\n");
-        System_flush();
-
-        Task_sleep(1000000 / Clock_tickPeriod);
-
-    }
-
 }
+
 
 Int main(void) {
 
     // Task variables
     Task_Handle sensorTaskHandle;
     Task_Params sensorTaskParams;
-    Task_Handle uartTaskHandle;
-    Task_Params uartTaskParams;
-    Task_Handle collectDataTaskHandle;
-    Task_Params collectDataTaskParams;
+    //Task_Handle uartTaskHandle;
+    //Task_Params uartTaskParams;
+
 
     // Initialize board
     Board_initGeneral();
@@ -285,7 +251,7 @@ Int main(void) {
 
 
     /* Task */
-/*
+
     Task_Params_init(&sensorTaskParams);
     sensorTaskParams.stackSize = STACKSIZE;
     sensorTaskParams.stack = &sensorTaskStack;
@@ -294,7 +260,7 @@ Int main(void) {
     if (sensorTaskHandle == NULL) {
         System_abort("Task create failed!");
     }
-
+    /*
     Task_Params_init(&uartTaskParams);
     uartTaskParams.stackSize = STACKSIZE;
     uartTaskParams.stack = &uartTaskStack;
@@ -304,15 +270,6 @@ Int main(void) {
         System_abort("Task create failed!");
     }*/
 
-    // Initialize and create collectDataTask for data gathering
-    Task_Params_init(&collectDataTaskParams);
-    collectDataTaskParams.stackSize = STACKSIZE;
-    collectDataTaskParams.stack = &collectDataStack;
-    collectDataTaskParams.priority = 3;
-    collectDataTaskHandle = Task_create(collectDataFxn, &collectDataTaskParams, NULL);
-    if (collectDataTaskHandle == NULL) {
-        System_abort("Task create failed!");
-    }
 
     /* Sanity check */
     //System_printf("Hello world!\n");
