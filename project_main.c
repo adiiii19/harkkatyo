@@ -1,5 +1,7 @@
 /* C Standard library */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* XDCtools files */
 #include <xdc/std.h>
@@ -26,6 +28,7 @@
 #define STACKSIZE 2048
 Char sensorTaskStack[STACKSIZE];
 Char uartTaskStack[STACKSIZE];
+Char morseReadTaskStack[STACKSIZE];
 
 
 //Tilakone
@@ -35,9 +38,14 @@ enum state programState = WAITING;
 
 
 // Global variables
+#define ROWS 30
+#define COLS 6
 double ambientLight = -1000.0;
-float mpuValues[30][6];
+float mpuValues[ROWS][COLS];
 char movementData[60];
+char morseCode[100];
+int sorter;
+//float maxValues[6];
 
 
 static PIN_Handle buttonHandle;
@@ -212,6 +220,130 @@ Void sensorTaskFxn(UArg arg0, UArg arg1) {
         }
 }
 
+/* Comparison function to sort rows based on gyrox (column index 3) */
+int compare(const void* a, const void* b) {
+    // Extract gyrox values from both rows and compare
+    float valueA = ((float*)a)[sorter];
+    float valueB = ((float*)b)[sorter];
+
+    // Sort in descending order for highest gyrox values first
+    if (valueA > valueB) return -1;
+    else if (valueA < valueB) return 1;
+    else return 0;
+}
+
+/* Sort function that uses qsort and compare to sort mpuValues by gyrox */
+void sortByParam(float mpuValues[ROWS][COLS]) {
+    qsort(mpuValues, ROWS, sizeof(mpuValues[0]), compare);
+}
+
+
+    void morseReadTask(UArg arg0, UArg arg1) {
+
+        Float ax, ay, az, gx, gy, gz;
+
+        I2C_Handle i2cMPU;
+        I2C_Params i2cMPUParams;
+
+        Int currentTime = Clock_getTicks();
+
+        //sanity check
+        System_printf("morsetask\n");
+        System_flush();
+
+        I2C_Params_init(&i2cMPUParams);
+        i2cMPUParams.bitRate = I2C_400kHz;
+
+        i2cMPUParams.custom = (uintptr_t)&i2cMPUCfg;
+
+        PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_ON);
+
+        Task_sleep(100000 / Clock_tickPeriod);
+        System_printf("MPU9250: Power ON\n");
+        System_flush();
+
+        i2cMPU = I2C_open(Board_I2C, &i2cMPUParams);
+        if (i2cMPU == NULL) {
+            System_abort("Error Initializing I2CMPU\n");
+        }
+
+        System_printf("MPU9250: Setup and calibration...\n");
+        System_flush();
+
+        mpu9250_setup(&i2cMPU);
+
+        System_printf("MPU9250: Setup and calibration OK\n");
+        System_flush();
+
+
+
+        while(1){
+            int movementDetected = 0;
+            int i;
+            for (i = 0; i <= 30; i++) {
+
+                mpu9250_get_data(&i2cMPU, &ax, &ay, &az, &gx, &gy, &gz);
+
+                mpuValues[i][0] = ax;
+                mpuValues[i][1] = ay;
+                mpuValues[i][2] = az;
+                mpuValues[i][3] = gx;
+                mpuValues[i][4] = gy;
+                mpuValues[i][5] = gz;
+
+                Task_sleep(100000 / Clock_tickPeriod);
+
+                }
+                sorter = 3;
+                sortByParam(mpuValues);
+
+                if (mpuValues[0][3]>10) {
+                    if (movementDetected==0) {
+                        movementDetected = 1;
+                    }
+                //System_printf("Suuri gyro\n");
+                //System_flush();
+                }
+                if(movementDetected == 1){
+                    //pöytäliike, tarkastellaan gyroz ja acceleration y
+                    /*if (fabs(gx) > 150){
+                        strcat(morseCode, ".");
+                    }*/
+                    //pyörähdysliike, tarkastellaan gyro x
+                    if (mpuValues[0][3]>100){
+                       strcat(morseCode, "-");
+                    }
+                    //System_printf("liikettä\n");
+                    //System_flush();
+                }
+                else{
+                    //System_printf(" ei liikettä\n");
+                    //System_flush();
+                }
+
+                System_printf("%s\n morsea", morseCode);
+                System_flush();
+                movementDetected = 0;
+
+
+
+        }
+
+        /*
+        // MPU close i2c
+        I2C_close(i2cMPU);
+        //MPU power off
+        PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_OFF);
+
+        System_printf("MPU9250: Power off\n");
+        System_flush();
+
+        Task_sleep(1000000 / Clock_tickPeriod);*/
+
+
+    }
+
+
 
 Int main(void) {
 
@@ -220,7 +352,8 @@ Int main(void) {
     Task_Params sensorTaskParams;
     //Task_Handle uartTaskHandle;
     //Task_Params uartTaskParams;
-
+    Task_Handle morseReadTaskHandle;
+    Task_Params morseReadTaskParams;
 
     // Initialize board
     Board_initGeneral();
@@ -252,6 +385,7 @@ Int main(void) {
 
     /* Task */
 
+    /*
     Task_Params_init(&sensorTaskParams);
     sensorTaskParams.stackSize = STACKSIZE;
     sensorTaskParams.stack = &sensorTaskStack;
@@ -259,7 +393,7 @@ Int main(void) {
     sensorTaskHandle = Task_create(sensorTaskFxn, &sensorTaskParams, NULL);
     if (sensorTaskHandle == NULL) {
         System_abort("Task create failed!");
-    }
+    }*/
     /*
     Task_Params_init(&uartTaskParams);
     uartTaskParams.stackSize = STACKSIZE;
@@ -269,7 +403,14 @@ Int main(void) {
     if (uartTaskHandle == NULL) {
         System_abort("Task create failed!");
     }*/
-
+    Task_Params_init(&morseReadTaskParams);
+    morseReadTaskParams.stackSize = STACKSIZE;
+    morseReadTaskParams.stack = &morseReadTaskStack;
+    morseReadTaskParams.priority=2;
+    morseReadTaskHandle = Task_create(morseReadTask, &morseReadTaskParams, NULL);
+    if (morseReadTaskHandle == NULL) {
+        System_abort("Task create failed!");
+    }
 
     /* Sanity check */
     //System_printf("Hello world!\n");
