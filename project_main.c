@@ -44,7 +44,9 @@ double ambientLight = -1000.0;
 float mpuValues[ROWS][COLS];
 char movementData[60];
 char morseCode[100];
+char allMessages[5][200];
 int sorter;
+int programsState2 = 0;
 //float maxValues[6];
 
 
@@ -84,7 +86,7 @@ void buttonFxn(PIN_Handle handle, PIN_Id pinId) {
 
 }
 
-/* Task Functions *//*
+/* Task Functions */
 Void uartTaskFxn(UArg arg0, UArg arg1) {
 
     // UARTin alustus: 9600,8n1
@@ -111,13 +113,14 @@ Void uartTaskFxn(UArg arg0, UArg arg1) {
     while (1) {
 
         //Data=ready, tulostaa debug ikkunaan
-        char dbg_msg[8];
-        if (programState == DATA_READY) {
+        char dbg_msg[200];
+        if (programState2 == 1) {
 
-            sprintf(dbg_msg, "%.3f\n\r", ambientLight);
+            sprintf(dbg_msg, "%s\n\r", allMessages[0]);
             System_printf("%s\n", dbg_msg);
             System_flush();
             UART_write(uart, dbg_msg, strlen(dbg_msg));
+            programState2 = 0;
             }
 
 
@@ -127,9 +130,9 @@ Void uartTaskFxn(UArg arg0, UArg arg1) {
         //System_flush();
 
         //once per second
-        Task_sleep(100000 / Clock_tickPeriod);
+        Task_sleep(500000 / Clock_tickPeriod);
     }
-}*/
+}
 
 Void sensorTaskFxn(UArg arg0, UArg arg1) {
 
@@ -258,7 +261,7 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
 
         PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_ON);
 
-        Task_sleep(100000 / Clock_tickPeriod);
+        //Task_sleep(100000 / Clock_tickPeriod);
         System_printf("MPU9250: Power ON\n");
         System_flush();
 
@@ -275,11 +278,15 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
         System_printf("MPU9250: Setup and calibration OK\n");
         System_flush();
 
+        System_printf("Morse Gathering start\n");
+        System_flush();
 
+        int movementDetected = 0;
+        int i=0;
+        int j=0;
+        int msg=0;
 
         while(1){
-            int movementDetected = 0;
-            int i;
             for (i = 0; i <= 30; i++) {
 
                 mpu9250_get_data(&i2cMPU, &ax, &ay, &az, &gx, &gy, &gz);
@@ -299,7 +306,7 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
 
                 if (mpuValues[0][3]>10) {
                     if (movementDetected==0) {
-                        movementDetected = 1;
+                        movementDetected=1;
                     }
                 //System_printf("Suuri gyro\n");
                 //System_flush();
@@ -308,20 +315,35 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
                     //pöytäliike, tarkastellaan gyroz ja acceleration y
                     /*if (fabs(gx) > 150){
                         strcat(morseCode, ".");
+                        j++;
                     }*/
                     //pyörähdysliike, tarkastellaan gyro x
                     if (mpuValues[0][3]>100){
                        strcat(morseCode, "-");
+                       j++;
                     }
                     //System_printf("liikettä\n");
                     //System_flush();
                 }
-                else{
-                    //System_printf(" ei liikettä\n");
-                    //System_flush();
+                if(movementDetected==0){
+                    if(morseCode[j-1]=='.'||morseCode[j-1]=='-'){
+                        strcat(morseCode, " ");
+                    }
+                    else if(morseCode[j-1]==' '&&morseCode[j-2]!=' '){
+                        strcat(morseCode, " ");
+                        }
+                    else if(morseCode[j-1]==' '&&morseCode[j-2]==' '){
+                        strcat(morseCode, " ");
+                        strcpy(allMessages[msg], morseCode);
+                        msg++;
+                        //memset(morseCode, '\0', sizeof(morseCode));
+                        System_printf("viesti valmis");
+                        programState2 = 1;
+                    }
+                    j++;
                 }
 
-                System_printf("%s\n morsea", morseCode);
+                System_printf("%s\n", morseCode);
                 System_flush();
                 movementDetected = 0;
 
@@ -348,10 +370,10 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
 Int main(void) {
 
     // Task variables
-    Task_Handle sensorTaskHandle;
-    Task_Params sensorTaskParams;
-    //Task_Handle uartTaskHandle;
-    //Task_Params uartTaskParams;
+    //Task_Handle sensorTaskHandle;
+    //Task_Params sensorTaskParams;
+    Task_Handle uartTaskHandle;
+    Task_Params uartTaskParams;
     Task_Handle morseReadTaskHandle;
     Task_Params morseReadTaskParams;
 
@@ -385,8 +407,8 @@ Int main(void) {
 
     /* Task */
 
-    /*
-    Task_Params_init(&sensorTaskParams);
+
+    /*Task_Params_init(&sensorTaskParams);
     sensorTaskParams.stackSize = STACKSIZE;
     sensorTaskParams.stack = &sensorTaskStack;
     sensorTaskParams.priority=2;
@@ -394,15 +416,16 @@ Int main(void) {
     if (sensorTaskHandle == NULL) {
         System_abort("Task create failed!");
     }*/
-    /*
+
     Task_Params_init(&uartTaskParams);
     uartTaskParams.stackSize = STACKSIZE;
     uartTaskParams.stack = &uartTaskStack;
-    uartTaskParams.priority=2;
+    uartTaskParams.priority=1;
     uartTaskHandle = Task_create(uartTaskFxn, &uartTaskParams, NULL);
     if (uartTaskHandle == NULL) {
         System_abort("Task create failed!");
-    }*/
+    }
+
     Task_Params_init(&morseReadTaskParams);
     morseReadTaskParams.stackSize = STACKSIZE;
     morseReadTaskParams.stack = &morseReadTaskStack;
