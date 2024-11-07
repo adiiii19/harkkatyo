@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /* XDCtools files */
 #include <xdc/std.h>
@@ -42,11 +43,12 @@ enum state programState = WAITING;
 #define COLS 6
 double ambientLight = -1000.0;
 float mpuValues[ROWS][COLS];
+float calculationValues[6];
 char movementData[60];
+char charToUart=' ';
 char morseCode[100];
 char allMessages[5][200];
 int sorter;
-int programsState2 = 0;
 //float maxValues[6];
 
 
@@ -86,53 +88,6 @@ void buttonFxn(PIN_Handle handle, PIN_Id pinId) {
 
 }
 
-/* Task Functions */
-Void uartTaskFxn(UArg arg0, UArg arg1) {
-
-    // UARTin alustus: 9600,8n1
-
-    UART_Handle uart;
-    UART_Params uartParams;
-
-
-    UART_Params_init(&uartParams);
-    uartParams.writeDataMode = UART_DATA_TEXT;
-    uartParams.readDataMode = UART_DATA_TEXT;
-    uartParams.readEcho = UART_ECHO_OFF;
-    uartParams.readMode=UART_MODE_BLOCKING;
-    uartParams.baudRate = 9600;
-    uartParams.dataLength = UART_LEN_8;
-    uartParams.parityType = UART_PAR_NONE;
-    uartParams.stopBits = UART_STOP_ONE;
-
-    uart = UART_open(Board_UART0, &uartParams);
-       if (uart == NULL) {
-           System_abort("Error opening the UART in uartTask");
-       }
-
-    while (1) {
-
-        //Data=ready, tulostaa debug ikkunaan
-        char dbg_msg[200];
-        if (programState2 == 1) {
-
-            sprintf(dbg_msg, "%s\n\r", allMessages[0]);
-            System_printf("%s\n", dbg_msg);
-            System_flush();
-            UART_write(uart, dbg_msg, strlen(dbg_msg));
-            programState2 = 0;
-            }
-
-
-
-        // sanity check
-        //System_printf("uartTask\n");
-        //System_flush();
-
-        //once per second
-        Task_sleep(500000 / Clock_tickPeriod);
-    }
-}
 
 Void sensorTaskFxn(UArg arg0, UArg arg1) {
 
@@ -240,6 +195,61 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
     qsort(mpuValues, ROWS, sizeof(mpuValues[0]), compare);
 }
 
+void countAverage(int columnIndex){
+    float sum = 0;
+    int i;
+    for (i = 0; i < ROWS; i++) {
+        sum += mpuValues[i][columnIndex];
+    }
+
+    // Calculate and return the average
+    float average = sum / ROWS;
+    if(columnIndex==1){
+        calculationValues[0] = average;
+    }
+    else if(columnIndex==3){
+            calculationValues[1] = average;
+        }
+    else if(columnIndex==5){
+            calculationValues[2] = average;
+        }
+}
+
+void countDeviation(int columnIndex){
+    float values = 0;
+    int i;
+
+    if(columnIndex==1){
+        for (i = 0; i < ROWS; i++) {
+            values += pow(mpuValues[i][columnIndex] - calculationValues[0], 2);
+            }
+        }
+    else if(columnIndex==3){
+        for (i = 0; i < ROWS; i++) {
+            values += pow(mpuValues[i][columnIndex] - calculationValues[1], 2);
+            }
+        }
+    else if(columnIndex==5){
+        for (i = 0; i < ROWS; i++) {
+            values += pow(mpuValues[i][columnIndex] - calculationValues[2], 2);
+            }
+        }
+
+    float variance = values / ROWS;
+
+    float standardDeviation = sqrt(variance);
+
+    if(columnIndex==1){
+        calculationValues[3] = standardDeviation;
+    }
+    else if(columnIndex==3){
+        calculationValues[4] = standardDeviation;
+    }
+    else if(columnIndex==5){
+        calculationValues[5] = standardDeviation;
+    }
+}
+
 
     void morseReadTask(UArg arg0, UArg arg1) {
 
@@ -283,8 +293,9 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
 
         int movementDetected = 0;
         int i=0;
-        int j=0;
-        int msg=0;
+        int k;
+        //int j=0;
+        //int msg=0;
 
         while(1){
             for (i = 0; i <= 30; i++) {
@@ -301,10 +312,26 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
                 Task_sleep(100000 / Clock_tickPeriod);
 
                 }
-                sorter = 3;
-                sortByParam(mpuValues);
+                //sorter = 3;
+                //sortByParam(mpuValues);
 
-                if (mpuValues[0][3]>10) {
+                countAverage(1);
+                countAverage(3);
+                countAverage(5);
+
+                countDeviation(1);
+                countDeviation(3);
+                countDeviation(5);
+
+                for (k = 0; k < 6; k++) {
+                       // Käytä %f float-lukujen tulostamiseen
+                       printf("Arvo %d: %.2f\n", k, calculationValues[k]);
+                   }
+                //System_printf("%.2f", calculationValues[4]);
+                //System_flush();
+
+                if ((calculationValues[3]>=0.04 && calculationValues[3]<=0.05 && calculationValues[5]>=0.05 && calculationValues[5]<=0.06)
+                    || (calculationValues[4]>=60 && calculationValues[4]<=70)) {
                     if (movementDetected==0) {
                         movementDetected=1;
                     }
@@ -313,19 +340,27 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
                 }
                 if(movementDetected == 1){
                     //pöytäliike, tarkastellaan gyroz ja acceleration y
-                    /*if (fabs(gx) > 150){
-                        strcat(morseCode, ".");
-                        j++;
-                    }*/
+                    if (calculationValues[3]>=0.04 && calculationValues[3]<=0.05 && calculationValues[5]>=0.05 && calculationValues[5]<=0.06){
+                        //strcat(morseCode, ".");
+                        //j++;
+                        charToUart='.';
+                        programState=DATA_READY;
+                        System_printf("pitäisi tulla .\n");
+                        System_flush();
+                    }
                     //pyörähdysliike, tarkastellaan gyro x
-                    if (mpuValues[0][3]>100){
-                       strcat(morseCode, "-");
-                       j++;
+                    else if (calculationValues[4]>=60 && calculationValues[4]<=70){
+                       //strcat(morseCode, "-");
+                       //j++;
+                        charToUart='-';
+                        programState=DATA_READY;
+                        System_printf("pitäisi tulla -\n");
+                        System_flush();
                     }
                     //System_printf("liikettä\n");
                     //System_flush();
                 }
-                if(movementDetected==0){
+                /*if(movementDetected==0){
                     if(morseCode[j-1]=='.'||morseCode[j-1]=='-'){
                         strcat(morseCode, " ");
                     }
@@ -338,13 +373,19 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
                         msg++;
                         //memset(morseCode, '\0', sizeof(morseCode));
                         System_printf("viesti valmis");
-                        programState2 = 1;
                     }
                     j++;
+                }*/
+                else {
+                    //välin lähetys uarttiin
+                    charToUart=' ';
+                    programState=DATA_READY;
+                    System_printf("pitäisi tulla vali\n");
+                    System_flush();
                 }
 
-                System_printf("%s\n", morseCode);
-                System_flush();
+                //System_printf("%s\n", morseCode);
+                //System_flush();
                 movementDetected = 0;
 
 
@@ -365,6 +406,53 @@ void sortByParam(float mpuValues[ROWS][COLS]) {
 
     }
 
+    /* Task Functions */
+    Void uartTaskFxn(UArg arg0, UArg arg1) {
+
+        // UARTin alustus: 9600,8n1
+
+        UART_Handle uart;
+        UART_Params uartParams;
+
+
+        UART_Params_init(&uartParams);
+        uartParams.writeDataMode = UART_DATA_TEXT;
+        uartParams.readDataMode = UART_DATA_TEXT;
+        uartParams.readEcho = UART_ECHO_OFF;
+        uartParams.readMode=UART_MODE_BLOCKING;
+        uartParams.baudRate = 9600;
+        uartParams.dataLength = UART_LEN_8;
+        uartParams.parityType = UART_PAR_NONE;
+        uartParams.stopBits = UART_STOP_ONE;
+
+        uart = UART_open(Board_UART0, &uartParams);
+           if (uart == NULL) {
+               System_abort("Error opening the UART in uartTask");
+           }
+
+        while (1) {
+
+            //Data=ready, tulostaa debug ikkunaan
+            char dbg_msg[200];
+            if (programState==DATA_READY) {
+
+                sprintf(dbg_msg, "%c\n\r", charToUart);
+                System_printf("%s\n", dbg_msg);
+                System_flush();
+                UART_write(uart, dbg_msg, strlen(dbg_msg));
+                programState=WAITING;
+                }
+
+
+
+            // sanity check
+            //System_printf("uartTask\n");
+            //System_flush();
+
+            //once per second
+            Task_sleep(500000 / Clock_tickPeriod);
+        }
+    }
 
 
 Int main(void) {
