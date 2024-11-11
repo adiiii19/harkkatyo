@@ -49,6 +49,7 @@ char charToUart=' ';
 char morseCode[100];
 char allMessages[5][200];
 int sorter;
+int startDataGathering = 0;
 //float maxValues[6];
 
 
@@ -80,7 +81,7 @@ static const I2CCC26XX_I2CPinCfg i2cMPUCfg = {
 };
 
 void buttonFxn(PIN_Handle handle, PIN_Id pinId) {
-
+    startDataGathering = 1;
     // Vilkuta jompaa kumpaa ledia
     uint_t pinValue = PIN_getOutputValue( Board_LED0 );
     pinValue = !pinValue;
@@ -298,6 +299,8 @@ void countDeviation(int columnIndex){
         //int msg=0;
 
         while(1){
+            if (startDataGathering == 1) {
+                startDataGathering = 0;
             for (i = 0; i <= 30; i++) {
 
                 mpu9250_get_data(&i2cMPU, &ax, &ay, &az, &gx, &gy, &gz);
@@ -330,28 +333,16 @@ void countDeviation(int columnIndex){
                 //System_printf("%.2f", calculationValues[4]);
                 //System_flush();
 
-                if ((calculationValues[3]>=0.04 && calculationValues[3]<=0.05 && calculationValues[5]>=0.05 && calculationValues[5]<=0.06)
-                    || (calculationValues[4]>=60 && calculationValues[4]<=70)) {
-                    if (movementDetected==0) {
-                        movementDetected=1;
-                    }
-                //System_printf("Suuri gyro\n");
-                //System_flush();
-                }
-                if(movementDetected == 1){
+
                     //pöytäliike, tarkastellaan gyroz ja acceleration y
-                    if (calculationValues[3]>=0.04 && calculationValues[3]<=0.05 && calculationValues[5]>=0.05 && calculationValues[5]<=0.06){
-                        //strcat(morseCode, ".");
-                        //j++;
+                    if (calculationValues[3]>=0.04 && calculationValues[3]<=0.1 && calculationValues[5]>=3 && calculationValues[5]<=10){
                         charToUart='.';
                         programState=DATA_READY;
                         System_printf("pitäisi tulla .\n");
                         System_flush();
                     }
                     //pyörähdysliike, tarkastellaan gyro x
-                    else if (calculationValues[4]>=60 && calculationValues[4]<=70){
-                       //strcat(morseCode, "-");
-                       //j++;
+                    else if (calculationValues[4]>=90 && calculationValues[4]<=110){
                         charToUart='-';
                         programState=DATA_READY;
                         System_printf("pitäisi tulla -\n");
@@ -359,23 +350,8 @@ void countDeviation(int columnIndex){
                     }
                     //System_printf("liikettä\n");
                     //System_flush();
-                }
-                /*if(movementDetected==0){
-                    if(morseCode[j-1]=='.'||morseCode[j-1]=='-'){
-                        strcat(morseCode, " ");
-                    }
-                    else if(morseCode[j-1]==' '&&morseCode[j-2]!=' '){
-                        strcat(morseCode, " ");
-                        }
-                    else if(morseCode[j-1]==' '&&morseCode[j-2]==' '){
-                        strcat(morseCode, " ");
-                        strcpy(allMessages[msg], morseCode);
-                        msg++;
-                        //memset(morseCode, '\0', sizeof(morseCode));
-                        System_printf("viesti valmis");
-                    }
-                    j++;
-                }*/
+
+
                 else {
                     //välin lähetys uarttiin
                     charToUart=' ';
@@ -386,10 +362,9 @@ void countDeviation(int columnIndex){
 
                 //System_printf("%s\n", morseCode);
                 //System_flush();
-                movementDetected = 0;
 
-
-
+            }
+        }
         }
 
         /*
@@ -404,7 +379,7 @@ void countDeviation(int columnIndex){
         Task_sleep(1000000 / Clock_tickPeriod);*/
 
 
-    }
+
 
     /* Task Functions */
     Void uartTaskFxn(UArg arg0, UArg arg1) {
@@ -433,13 +408,13 @@ void countDeviation(int columnIndex){
         while (1) {
 
             //Data=ready, tulostaa debug ikkunaan
-            char dbg_msg[200];
+            char dbg_msg[4];
             if (programState==DATA_READY) {
 
-                sprintf(dbg_msg, "%c\n\r", charToUart);
-                System_printf("%s\n", dbg_msg);
+                sprintf(dbg_msg, "%c\n\r\0", charToUart);
+                System_printf("uart tulostus:%c\n", charToUart);
                 System_flush();
-                UART_write(uart, dbg_msg, strlen(dbg_msg));
+                UART_write(uart, dbg_msg, strlen(dbg_msg)+1);
                 programState=WAITING;
                 }
 
