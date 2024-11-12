@@ -180,22 +180,7 @@ Void sensorTaskFxn(UArg arg0, UArg arg1) {
         }
 }
 
-/* Comparison function to sort rows based on gyrox (column index 3) */
-int compare(const void* a, const void* b) {
-    // Extract gyrox values from both rows and compare
-    float valueA = ((float*)a)[sorter];
-    float valueB = ((float*)b)[sorter];
 
-    // Sort in descending order for highest gyrox values first
-    if (valueA > valueB) return -1;
-    else if (valueA < valueB) return 1;
-    else return 0;
-}
-
-/* Sort function that uses qsort and compare to sort mpuValues by gyrox */
-void sortByParam(float mpuValues[ROWS][COLS]) {
-    qsort(mpuValues, ROWS, sizeof(mpuValues[0]), compare);
-}
 
 void countAverage(int columnIndex){
     float sum = 0;
@@ -316,8 +301,6 @@ void countDeviation(int columnIndex){
                 Task_sleep(100000 / Clock_tickPeriod);
 
                 }
-                //sorter = 3;
-                //sortByParam(mpuValues);
 
                 countAverage(1);
                 countAverage(3);
