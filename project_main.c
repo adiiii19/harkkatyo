@@ -50,6 +50,7 @@ char morseCode[100];
 char allMessages[5][200];
 int sorter;
 int startDataGathering = 0;
+int programState2 = 0;
 //float maxValues[6];
 
 
@@ -362,7 +363,6 @@ void countDeviation(int columnIndex){
 
                 //System_printf("%s\n", morseCode);
                 //System_flush();
-
             }
         }
         }
