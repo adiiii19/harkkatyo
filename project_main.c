@@ -60,6 +60,8 @@ static PIN_Handle ledHandle;
 static PIN_State ledState;
 static PIN_Handle MpuPin;
 static PIN_State MpuPinState;
+static PIN_Handle buzzerHandle;
+static PIN_State buzzerState;
 
 static PIN_Config MpuPinConfig[] = {
     Board_MPU_POWER  | PIN_GPIO_OUTPUT_EN | PIN_GPIO_HIGH | PIN_PUSHPULL | PIN_DRVSTR_MAX,
@@ -75,6 +77,10 @@ PIN_Config ledConfig[] = {
    Board_LED0 | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
    PIN_TERMINATE
 };
+PIN_Config buzzerConfig[] = {
+   Board_BUZZER | PIN_GPIO_OUTPUT_EN | PIN_GPIO_LOW | PIN_PUSHPULL | PIN_DRVSTR_MAX,
+   PIN_TERMINATE
+};
 
 static const I2CCC26XX_I2CPinCfg i2cMPUCfg = {
     .pinSDA = Board_I2C0_SDA1,
@@ -88,6 +94,21 @@ void buttonFxn(PIN_Handle handle, PIN_Id pinId) {
     pinValue = !pinValue;
     PIN_setOutputValue( ledHandle, Board_LED0, pinValue );
 
+}
+
+void playSound(int duration_ms) {
+    int32_t startTime = Clock_getTicks();
+    int32_t endTime = startTime + (duration_ms * 1000 / Clock_tickPeriod);
+
+    while (Clock_getTicks() < endTime) {
+        uint_t pinValue = PIN_getOutputValue(Board_BUZZER);
+        PIN_setOutputValue(buzzerHandle, Board_BUZZER, !pinValue);
+
+        Task_sleep(500 / Clock_tickPeriod);
+    }
+
+    // Ensure buzzer is off
+    //PIN_setOutputValue(buzzerHandle, Board_BUZZER, PIN_GPIO_LOW);
 }
 
 
@@ -319,11 +340,12 @@ void countDeviation(int columnIndex){
 
 
                     //pöytäliike, tarkastellaan gyroz ja acceleration y
-                    if (calculationValues[3]>=0.04 && calculationValues[3]<=0.1 && calculationValues[5]>=3 && calculationValues[5]<=10){
+                    if (calculationValues[3]>=0.06 && calculationValues[3]<=0.1 && calculationValues[5]>=3 && calculationValues[5]<=10){
                         charToUart='.';
                         programState=DATA_READY;
                         System_printf("pitäisi tulla .\n");
                         System_flush();
+                        playSound(500);
                     }
                     //pyörähdysliike, tarkastellaan gyro x
                     else if (calculationValues[4]>=90 && calculationValues[4]<=110){
@@ -331,6 +353,7 @@ void countDeviation(int columnIndex){
                         programState=DATA_READY;
                         System_printf("pitäisi tulla -\n");
                         System_flush();
+                        playSound(500);
                     }
                     //System_printf("liikettä\n");
                     //System_flush();
@@ -342,10 +365,12 @@ void countDeviation(int columnIndex){
                     programState=DATA_READY;
                     System_printf("pitäisi tulla vali\n");
                     System_flush();
+                    playSound(200);
                 }
 
                 //System_printf("%s\n", morseCode);
                 //System_flush();
+                Task_sleep(100000 / Clock_tickPeriod);
             }
         }
         }
@@ -394,7 +419,7 @@ void countDeviation(int columnIndex){
             char dbg_msg[4];
             if (programState==DATA_READY) {
 
-                sprintf(dbg_msg, "%c\n\r\0", charToUart);
+                sprintf(dbg_msg, "%c\r\n\0", charToUart);
                 System_printf("uart tulostus:%c\n", charToUart);
                 System_flush();
                 UART_write(uart, dbg_msg, strlen(dbg_msg)+1);
@@ -408,7 +433,7 @@ void countDeviation(int columnIndex){
             //System_flush();
 
             //once per second
-            Task_sleep(500000 / Clock_tickPeriod);
+            Task_sleep(200000 / Clock_tickPeriod);
         }
     }
 
@@ -447,9 +472,12 @@ Int main(void) {
     MpuPin = PIN_open(&MpuPinState, MpuPinConfig);
         if (MpuPin == NULL) {
             System_abort("Pin open failed!");
-        }
+    }
 
-
+    buzzerHandle = PIN_open(&buzzerState, buzzerConfig);
+    if (!buzzerHandle) {
+        System_abort("Error initializing buzzer pin\n");
+    }
 
     /* Task */
 
