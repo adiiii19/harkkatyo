@@ -47,7 +47,7 @@ float calculationValues[6];
 char movementData[60];
 char charToUart=' ';
 char morseCode[100];
-char allMessages[5][200];
+char allMessages[100];
 int sorter;
 int startDataGathering = 0;
 int programState2 = 0;
@@ -107,8 +107,6 @@ void playSound(int duration_ms) {
         Task_sleep(500 / Clock_tickPeriod);
     }
 
-    // Ensure buzzer is off
-    //PIN_setOutputValue(buzzerHandle, Board_BUZZER, PIN_GPIO_LOW);
 }
 
 
@@ -372,6 +370,8 @@ void countDeviation(int columnIndex){
                 //System_flush();
                 Task_sleep(100000 / Clock_tickPeriod);
             }
+            Task_sleep(100000 / Clock_tickPeriod);
+
         }
         }
 
@@ -402,7 +402,7 @@ void countDeviation(int columnIndex){
         uartParams.writeDataMode = UART_DATA_TEXT;
         uartParams.readDataMode = UART_DATA_TEXT;
         uartParams.readEcho = UART_ECHO_OFF;
-        uartParams.readMode=UART_MODE_BLOCKING;
+        uartParams.readMode=UART_MODE_CALLBACK;
         uartParams.baudRate = 9600;
         uartParams.dataLength = UART_LEN_8;
         uartParams.parityType = UART_PAR_NONE;
@@ -426,6 +426,22 @@ void countDeviation(int columnIndex){
                 programState=WAITING;
                 }
 
+            //System_printf("mennaan readii");
+            //System_flush();
+            int bytesRead = UART_readPolling(uart, allMessages, sizeof(allMessages) - 1);
+            //System_printf("Received: %s\n", allMessages);
+            //System_flush();
+                if (bytesRead > 0) {
+                    allMessages[bytesRead] = '\0'; // Null-terminate the string
+
+                System_printf("Received: %s\n", allMessages);
+                System_flush();
+
+                // Translate input to Morse code and play it
+                //playMorseCode(allMessages);
+            }
+
+
 
 
             // sanity check
@@ -433,7 +449,8 @@ void countDeviation(int columnIndex){
             //System_flush();
 
             //once per second
-            Task_sleep(200000 / Clock_tickPeriod);
+            Task_sleep(400000 / Clock_tickPeriod);
+
         }
     }
 
