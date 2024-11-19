@@ -51,8 +51,16 @@ char allMessages[100];
 int sorter;
 int startDataGathering = 0;
 int programState2 = 0;
-//float maxValues[6];
+/*#define DOT_DURATION 200   // Duration of a dot in milliseconds
+#define DASH_DURATION 600  // Duration of a dash in milliseconds
+#define GAP_DURATION 200   // Gap between elements in a character
+#define CHAR_GAP 600    */    // Gap between characters
 
+#define UNIT_DURATION 500 // Base duration for one unit in milliseconds
+#define DOT_DURATION 200
+#define DASH_DURATION 600
+#define CHAR_GAP 8000
+#define WORD_GAP 10000
 
 static PIN_Handle buttonHandle;
 static PIN_State buttonState;
@@ -341,7 +349,6 @@ void countDeviation(int columnIndex){
                     if (calculationValues[3]>=0.06 && calculationValues[3]<=0.1 && calculationValues[5]>=3 && calculationValues[5]<=10){
                         charToUart='.';
                         programState=DATA_READY;
-                        System_printf("pitäisi tulla .\n");
                         System_flush();
                         playSound(500);
                     }
@@ -349,7 +356,6 @@ void countDeviation(int columnIndex){
                     else if (calculationValues[4]>=90 && calculationValues[4]<=110){
                         charToUart='-';
                         programState=DATA_READY;
-                        System_printf("pitäisi tulla -\n");
                         System_flush();
                         playSound(500);
                     }
@@ -361,7 +367,6 @@ void countDeviation(int columnIndex){
                     //välin lähetys uarttiin
                     charToUart=' ';
                     programState=DATA_READY;
-                    System_printf("pitäisi tulla vali\n");
                     System_flush();
                     playSound(200);
                 }
@@ -386,8 +391,43 @@ void countDeviation(int columnIndex){
 
         Task_sleep(1000000 / Clock_tickPeriod);*/
 
+    void playMorseCode(char *morseCode) {
+        int i = 0;
+        while (morseCode[i] != '\0') {
+            if (morseCode[i] == '.') {
+                playSound(DOT_DURATION); // Play dot (1 unit)
+                System_printf("piste\n");
+                System_flush();
+            } else if (morseCode[i] == '-') {
+                System_printf("viiva\n");
+                System_flush();
+                playSound(DASH_DURATION); // Play dash (3 units)
+            } else if (morseCode[i] == ' ') {
+                System_printf("vali\n");
+                System_flush();
+                Task_sleep(WORD_GAP / Clock_tickPeriod); // Pause between words (7 units)
+                //i++; // Skip multiple spaces between words if needed
+                //continue; // Skip additional gap below
+            }
+            Task_sleep(CHAR_GAP / Clock_tickPeriod);
+            System_printf("chargap\n");
+            System_flush();
+            // Intra-character element gap (1 unit)
+            //Task_sleep(GAP_DURATION / Clock_tickPeriod);
+
+            // Move to next Morse code element
+            i++;
+        }
+
+        // Inter-character gap (3 units) after the last character
+        //Task_sleep(CHAR_GAP / Clock_tickPeriod);
+    }
 
 
+
+    void uartFxn(UART_Handle handle, void *allMessages, size_t len){
+        UART_read(handle, allMessages, 100);
+    }
 
     /* Task Functions */
     Void uartTaskFxn(UArg arg0, UArg arg1) {
@@ -401,8 +441,9 @@ void countDeviation(int columnIndex){
         UART_Params_init(&uartParams);
         uartParams.writeDataMode = UART_DATA_TEXT;
         uartParams.readDataMode = UART_DATA_TEXT;
-        uartParams.readEcho = UART_ECHO_OFF;
-        uartParams.readMode=UART_MODE_CALLBACK;
+        //uartParams.readEcho = UART_ECHO_OFF;
+        uartParams.readMode = UART_MODE_CALLBACK;
+        uartParams.readCallback = &uartFxn;
         uartParams.baudRate = 9600;
         uartParams.dataLength = UART_LEN_8;
         uartParams.parityType = UART_PAR_NONE;
@@ -420,40 +461,45 @@ void countDeviation(int columnIndex){
             if (programState==DATA_READY) {
 
                 sprintf(dbg_msg, "%c\r\n\0", charToUart);
-                System_printf("uart tulostus:%c\n", charToUart);
-                System_flush();
+                //System_printf("uart tulostus:%c\n", charToUart);
+                //System_flush();
                 UART_write(uart, dbg_msg, strlen(dbg_msg)+1);
                 programState=WAITING;
                 }
 
-            //System_printf("mennaan readii");
-            //System_flush();
-            int bytesRead = UART_readPolling(uart, allMessages, sizeof(allMessages) - 1);
-            //System_printf("Received: %s\n", allMessages);
-            //System_flush();
-                if (bytesRead > 0) {
-                    allMessages[bytesRead] = '\0'; // Null-terminate the string
 
-                System_printf("Received: %s\n", allMessages);
-                System_flush();
-
-                // Translate input to Morse code and play it
-                //playMorseCode(allMessages);
-            }
+            UART_read(uart, allMessages, 100);
 
 
+            playMorseCode(allMessages);
+            UART_readCancel(uart);
 
+            //memset(allMessages, '\0', 100);
+
+            /*char outputBuffer[sizeof(allMessages) + 1]; // Ensure the output buffer is large enough
+            sprintf(outputBuffer, "%s", allMessages);  // Format the allMessages array into the outputBuffer
+            System_printf("AllMessages: %s\n", outputBuffer);
+            System_flush(); // Ensure the output is displayed
+*/
+            /*int i;
+
+            for (i = 0; i <= 100; i++) {
+                allMessages[i] = '\0';
+            }*/
+            memset(allMessages, '\0', 100);
+
+
+            //UART_close(uart);
 
             // sanity check
             //System_printf("uartTask\n");
             //System_flush();
 
             //once per second
-            Task_sleep(400000 / Clock_tickPeriod);
+            Task_sleep(1000000 / Clock_tickPeriod);
 
         }
     }
-
 
 Int main(void) {
 
