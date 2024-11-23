@@ -1,3 +1,5 @@
+/* Tekijät: Daniel Mwai, Atte Blomqvist, Maria Vasko/*
+
 /* C Standard library */
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,13 +52,9 @@ char morseCode[100];
 char allMessages[100];
 int sorter;
 int startDataGathering = 0;
-int programState2 = 0;
-/*#define DOT_DURATION 200   // Duration of a dot in milliseconds
-#define DASH_DURATION 600  // Duration of a dash in milliseconds
-#define GAP_DURATION 200   // Gap between elements in a character
-#define CHAR_GAP 600    */    // Gap between characters
 
-#define UNIT_DURATION 500 // Base duration for one unit in milliseconds
+
+#define UNIT_DURATION 500
 #define DOT_DURATION 200
 #define DASH_DURATION 600
 #define CHAR_GAP 8000
@@ -97,7 +95,6 @@ static const I2CCC26XX_I2CPinCfg i2cMPUCfg = {
 
 void buttonFxn(PIN_Handle handle, PIN_Id pinId) {
     startDataGathering = 1;
-    // Vilkuta jompaa kumpaa ledia
     uint_t pinValue = PIN_getOutputValue( Board_LED0 );
     pinValue = !pinValue;
     PIN_setOutputValue( ledHandle, Board_LED0, pinValue );
@@ -124,8 +121,6 @@ Void sensorTaskFxn(UArg arg0, UArg arg1) {
             float ax, ay, az, gx, gy, gz;
             I2C_Handle i2cMPU;
             I2C_Params i2cMPUParams;
-            //I2C_Handle      i2c;
-            //I2C_Params      i2cParams;
 
             //sanity check
             System_printf("datacollect\n");
@@ -265,56 +260,60 @@ void countDeviation(int columnIndex){
 }
 
 
-    void morseReadTask(UArg arg0, UArg arg1) {
+    void morseReadTask(UArg arg0, UArg arg1)
+{
 
-        Float ax, ay, az, gx, gy, gz;
+    Float ax, ay, az, gx, gy, gz;
 
-        I2C_Handle i2cMPU;
-        I2C_Params i2cMPUParams;
+    I2C_Handle i2cMPU;
+    I2C_Params i2cMPUParams;
 
-        Int currentTime = Clock_getTicks();
+    Int currentTime = Clock_getTicks();
 
-        //sanity check
-        System_printf("morsetask\n");
-        System_flush();
+    //sanity check
+    System_printf("morsetask\n");
+    System_flush();
 
-        I2C_Params_init(&i2cMPUParams);
-        i2cMPUParams.bitRate = I2C_400kHz;
+    I2C_Params_init(&i2cMPUParams);
+    i2cMPUParams.bitRate = I2C_400kHz;
 
-        i2cMPUParams.custom = (uintptr_t)&i2cMPUCfg;
+    i2cMPUParams.custom = (uintptr_t) &i2cMPUCfg;
 
-        PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_ON);
+    PIN_setOutputValue(MpuPin, Board_MPU_POWER, Board_MPU_POWER_ON);
 
-        //Task_sleep(100000 / Clock_tickPeriod);
-        System_printf("MPU9250: Power ON\n");
-        System_flush();
+    //Task_sleep(100000 / Clock_tickPeriod);
+    System_printf("MPU9250: Power ON\n");
+    System_flush();
 
-        i2cMPU = I2C_open(Board_I2C, &i2cMPUParams);
-        if (i2cMPU == NULL) {
-            System_abort("Error Initializing I2CMPU\n");
-        }
+    i2cMPU = I2C_open(Board_I2C, &i2cMPUParams);
+    if (i2cMPU == NULL)
+    {
+        System_abort("Error Initializing I2CMPU\n");
+    }
 
-        System_printf("MPU9250: Setup and calibration...\n");
-        System_flush();
+    System_printf("MPU9250: Setup and calibration...\n");
+    System_flush();
 
-        mpu9250_setup(&i2cMPU);
+    mpu9250_setup(&i2cMPU);
 
-        System_printf("MPU9250: Setup and calibration OK\n");
-        System_flush();
+    System_printf("MPU9250: Setup and calibration OK\n");
+    System_flush();
 
-        System_printf("Morse Gathering start\n");
-        System_flush();
+    System_printf("Morse Gathering start\n");
+    System_flush();
 
-        int movementDetected = 0;
-        int i=0;
-        int k;
-        //int j=0;
-        //int msg=0;
+    int i = 0;
+    int k;
+    //int j=0;
+    //int msg=0;
 
-        while(1){
-            if (startDataGathering == 1) {
-                startDataGathering = 0;
-            for (i = 0; i <= 30; i++) {
+    while (1)
+    {
+        if (startDataGathering == 1)
+        {
+            startDataGathering = 0;
+            for (i = 0; i <= 30; i++)
+            {
 
                 mpu9250_get_data(&i2cMPU, &ax, &ay, &az, &gx, &gy, &gz);
 
@@ -327,185 +326,143 @@ void countDeviation(int columnIndex){
 
                 Task_sleep(100000 / Clock_tickPeriod);
 
-                }
+            }
 
-                countAverage(1);
-                countAverage(3);
-                countAverage(5);
+            countAverage(1);
+            countAverage(3);
+            countAverage(5);
 
-                countDeviation(1);
-                countDeviation(3);
-                countDeviation(5);
+            countDeviation(1);
+            countDeviation(3);
+            countDeviation(5);
 
-                for (k = 0; k < 6; k++) {
-                       // Käytä %f float-lukujen tulostamiseen
-                       printf("Arvo %d: %.2f\n", k, calculationValues[k]);
-                   }
-                //System_printf("%.2f", calculationValues[4]);
-                //System_flush();
-
-
-                    //pöytäliike, tarkastellaan gyroz ja acceleration y
-                    if (calculationValues[3]>=0.06 && calculationValues[3]<=0.1 && calculationValues[5]>=3 && calculationValues[5]<=10){
-                        charToUart='.';
-                        programState=DATA_READY;
-                        System_flush();
-                        playSound(500);
-                    }
-                    //pyörähdysliike, tarkastellaan gyro x
-                    else if (calculationValues[4]>=90 && calculationValues[4]<=110){
-                        charToUart='-';
-                        programState=DATA_READY;
-                        System_flush();
-                        playSound(500);
-                    }
-                    //System_printf("liikettä\n");
-                    //System_flush();
-
-
-                else {
-                    //välin lähetys uarttiin
-                    charToUart=' ';
-                    programState=DATA_READY;
-                    System_flush();
-                    playSound(200);
-                }
-
-                //System_printf("%s\n", morseCode);
-                //System_flush();
-                Task_sleep(100000 / Clock_tickPeriod);
+            //pöytäliike, tarkastellaan gyroz ja acceleration y
+            if (calculationValues[3] >= 0.06 && calculationValues[3] <= 0.1
+                    && calculationValues[5] >= 3 && calculationValues[5] <= 10)
+            {
+                charToUart = '.';
+                programState = DATA_READY;
+                System_flush();
+                playSound(500);
+            }
+            //pyörähdysliike, tarkastellaan gyro x
+            else if (calculationValues[4] >= 90 && calculationValues[4] <= 110)
+            {
+                charToUart = '-';
+                programState = DATA_READY;
+                System_flush();
+                playSound(500);
+            }
+            else
+            {
+                //välin lähetys uarttiin
+                charToUart = ' ';
+                programState = DATA_READY;
+                System_flush();
+                playSound(200);
             }
             Task_sleep(100000 / Clock_tickPeriod);
-
         }
-        }
+        Task_sleep(100000 / Clock_tickPeriod);
 
-        /*
-        // MPU close i2c
-        I2C_close(i2cMPU);
-        //MPU power off
-        PIN_setOutputValue(MpuPin,Board_MPU_POWER, Board_MPU_POWER_OFF);
+    }
+}
 
-        System_printf("MPU9250: Power off\n");
-        System_flush();
-
-        Task_sleep(1000000 / Clock_tickPeriod);*/
-
-    void playMorseCode(char *morseCode) {
-        int i = 0;
-        while (morseCode[i] != '\0') {
-            if (morseCode[i] == '.') {
-                playSound(DOT_DURATION); // Play dot (1 unit)
-                System_printf("piste\n");
-                System_flush();
-            } else if (morseCode[i] == '-') {
-                System_printf("viiva\n");
-                System_flush();
-                playSound(DASH_DURATION); // Play dash (3 units)
-            } else if (morseCode[i] == ' ') {
-                System_printf("vali\n");
-                System_flush();
-                Task_sleep(WORD_GAP / Clock_tickPeriod); // Pause between words (7 units)
-                //i++; // Skip multiple spaces between words if needed
-                //continue; // Skip additional gap below
-            }
-            Task_sleep(CHAR_GAP / Clock_tickPeriod);
-            System_printf("chargap\n");
+void playMorseCode(char *morseCode)
+{
+    int i = 0;
+    while (morseCode[i] != '\0')
+    {
+        if (morseCode[i] == '.')
+        {
+            playSound(DOT_DURATION);
+            System_printf("piste\n");
             System_flush();
-            // Intra-character element gap (1 unit)
-            //Task_sleep(GAP_DURATION / Clock_tickPeriod);
-
-            // Move to next Morse code element
-            i++;
         }
+        else if (morseCode[i] == '-')
+        {
+            System_printf("viiva\n");
+            System_flush();
+            playSound(DASH_DURATION);
+        }
+        else if (morseCode[i] == ' ')
+        {
+            System_printf("vali\n");
+            System_flush();
+            Task_sleep(WORD_GAP / Clock_tickPeriod);
+        }
+        Task_sleep(CHAR_GAP / Clock_tickPeriod);
+        System_printf("chargap\n");
+        System_flush();
+        i++;
+    }
+}
 
-        // Inter-character gap (3 units) after the last character
-        //Task_sleep(CHAR_GAP / Clock_tickPeriod);
+
+
+    void uartFxn(UART_Handle handle, void *allMessages, size_t len)
+{
+    UART_read(handle, allMessages, 100);
+}
+
+/* Task Functions */
+Void uartTaskFxn(UArg arg0, UArg arg1)
+{
+
+    // UARTin alustus: 9600,8n1
+
+    UART_Handle uart;
+    UART_Params uartParams;
+
+    UART_Params_init(&uartParams);
+    uartParams.writeDataMode = UART_DATA_TEXT;
+    uartParams.readDataMode = UART_DATA_TEXT;
+    uartParams.readMode = UART_MODE_CALLBACK;
+    uartParams.readCallback = &uartFxn;
+    uartParams.baudRate = 9600;
+    uartParams.dataLength = UART_LEN_8;
+    uartParams.parityType = UART_PAR_NONE;
+    uartParams.stopBits = UART_STOP_ONE;
+
+    uart = UART_open(Board_UART0, &uartParams);
+    if (uart == NULL)
+    {
+        System_abort("Error opening the UART in uartTask");
     }
 
+    while (1)
+    {
 
+        //Data=ready, tulostaa debug ikkunaan
+        char dbg_msg[4];
+        if (programState == DATA_READY)
+        {
 
-    void uartFxn(UART_Handle handle, void *allMessages, size_t len){
-        UART_read(handle, allMessages, 100);
-    }
-
-    /* Task Functions */
-    Void uartTaskFxn(UArg arg0, UArg arg1) {
-
-        // UARTin alustus: 9600,8n1
-
-        UART_Handle uart;
-        UART_Params uartParams;
-
-
-        UART_Params_init(&uartParams);
-        uartParams.writeDataMode = UART_DATA_TEXT;
-        uartParams.readDataMode = UART_DATA_TEXT;
-        //uartParams.readEcho = UART_ECHO_OFF;
-        uartParams.readMode = UART_MODE_CALLBACK;
-        uartParams.readCallback = &uartFxn;
-        uartParams.baudRate = 9600;
-        uartParams.dataLength = UART_LEN_8;
-        uartParams.parityType = UART_PAR_NONE;
-        uartParams.stopBits = UART_STOP_ONE;
-
-        uart = UART_open(Board_UART0, &uartParams);
-           if (uart == NULL) {
-               System_abort("Error opening the UART in uartTask");
-           }
-
-        while (1) {
-
-            //Data=ready, tulostaa debug ikkunaan
-            char dbg_msg[4];
-            if (programState==DATA_READY) {
-
-                sprintf(dbg_msg, "%c\r\n\0", charToUart);
-                //System_printf("uart tulostus:%c\n", charToUart);
-                //System_flush();
-                UART_write(uart, dbg_msg, strlen(dbg_msg)+1);
-                programState=WAITING;
-                }
-
-
-            UART_read(uart, allMessages, 100);
-
-
-            playMorseCode(allMessages);
-            UART_readCancel(uart);
-
-            //memset(allMessages, '\0', 100);
-
-            /*char outputBuffer[sizeof(allMessages) + 1]; // Ensure the output buffer is large enough
-            sprintf(outputBuffer, "%s", allMessages);  // Format the allMessages array into the outputBuffer
-            System_printf("AllMessages: %s\n", outputBuffer);
-            System_flush(); // Ensure the output is displayed
-*/
-            /*int i;
-
-            for (i = 0; i <= 100; i++) {
-                allMessages[i] = '\0';
-            }*/
-            memset(allMessages, '\0', 100);
-
-
-            //UART_close(uart);
-
-            // sanity check
-            //System_printf("uartTask\n");
+            sprintf(dbg_msg, "%c\r\n\0", charToUart);
+            //System_printf("uart tulostus:%c\n", charToUart);
             //System_flush();
-
-            //once per second
-            Task_sleep(1000000 / Clock_tickPeriod);
-
+            UART_write(uart, dbg_msg, strlen(dbg_msg) + 1);
+            programState = WAITING;
         }
+
+        UART_read(uart, allMessages, 100);
+
+        playMorseCode(allMessages);
+        UART_readCancel(uart);
+        memset(allMessages, '\0', 100);
+
+        // sanity check
+        //System_printf("uartTask\n");
+        //System_flush();
+
+        //once per second
+        Task_sleep(1000000 / Clock_tickPeriod);
+
     }
+}
 
 Int main(void) {
 
-    // Task variables
-    //Task_Handle sensorTaskHandle;
-    //Task_Params sensorTaskParams;
     Task_Handle uartTaskHandle;
     Task_Params uartTaskParams;
     Task_Handle morseReadTaskHandle;
