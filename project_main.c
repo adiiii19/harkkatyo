@@ -303,9 +303,6 @@ void countDeviation(int columnIndex){
     System_flush();
 
     int i = 0;
-    int k;
-    //int j=0;
-    //int msg=0;
 
     while (1)
     {
